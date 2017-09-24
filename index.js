@@ -20,7 +20,7 @@ const sendMsg = (chatID, content, type) => {
 
 const deleteMsg = (chatID, msgID) => {
     return new Promise((resolve, reject) => {
-        bot.deleteMsg(chatID, msgID).resolve((data) => resolve(data)).catch(reject);
+        bot.deleteMessage(chatID, msgID).then((data) => resolve(data)).catch(reject);
     });
 };
 
@@ -39,9 +39,9 @@ const startTiming = chatID => {
         if (nowHr !== lastHr) {
             sendMsg(chatID, AUDIO.TIME[nowHr + '00']).then((msg) => {
                 setTimeout(() => {
-                    deleteMsg(chatID, msg.message_id)
-                }, 30 * 1000)
-            });
+                    deleteMsg(chatID, msg.message_id).then().catch();
+                }, 60 * 60 * 1000);
+            }).catch();
             lastHr = nowHr;
         }
     }, 60 * 1000);
@@ -52,18 +52,20 @@ const stopTiming = () => {
 bot.onText(/\/kitakami (.+)/, (msg, match) => {
     const command = match[1].split(' ');
     const key = command[0];
+    const method = command[1];
     let res = '';
     let type = 'text';
+    let time = 60 * 1000;
     switch (key) {
         case 'help':
             res = 'help\ntime XXXX\ntalk home|marry|attack|hurt|powerup|shower|sink';
             break;
         case 'time':
-            res = AUDIO.TIME[command[1]] || '';
+            res = AUDIO.TIME[method] || '';
             type = 'audio';
             break;
         case 'talk':
-            let arr = TEXT.TALK[command[1]];
+            let arr = TEXT.TALK[method];
             if (arr) {
                 let len = arr.length;
                 if (len > 0) {
@@ -83,16 +85,14 @@ bot.onText(/\/kitakami (.+)/, (msg, match) => {
         case 'abukuma':
             res = TEXT.ABUKUMA;
             break;
-        case 'delete_test':
-            res = 'delete test';
         default:
             break;
     }
     if (res) {
         sendMsg(msg.chat.id, res, type).then((msg) => {
             setTimeout(() => {
-                deleteMsg(msg.chat.id, msg.message_id);
-            }, 60 * 1000);
-        });
+                deleteMsg(msg.chat.id, msg.message_id).then().catch();
+            }, time);
+        }).catch();
     }
 });
