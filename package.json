@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/fifth/kitakami/issues"
   },
-  "homepage": "https://github.com/fifth/kitakami#readme"
+  "homepage": "https://github.com/fifth/kitakami#readme",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.28.0"
+  }
 }
