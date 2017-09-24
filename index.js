@@ -9,15 +9,19 @@ const bot = new TelegramBot(token, {
 });
 
 const sendMsg = (chatID, content, type) => {
-    if (type === 'audio') {
-        bot.sendAudio(chatID, content);
-    } else {
-        bot.sendMessage(chatID, content);
-    }
+    return new Promise((resolve, reject) => {
+        if (type === 'audio') {
+            bot.sendAudio(chatID, content).then((data) => resolve(data)).catch(reject);
+        } else {
+            bot.sendMessage(chatID, content).then((data) => resolve(data)).catch(reject);
+        }
+    });
 };
 
 const deleteMsg = (chatID, msgID) => {
-    bot.deleteMsg(chatID, msgID);
+    return new Promise((resolve, reject) => {
+        bot.deleteMsg(chatID, msgID).resolve((data) => resolve(data)).catch(reject);
+    });
 };
 
 let lastHr;
@@ -36,7 +40,7 @@ const startTiming = chatID => {
             sendMsg(chatID, AUDIO.TIME[nowHr + '00']).then((msg) => {
                 setTimeout(() => {
                     deleteMsg(chatID, msg.message_id)
-                }, 60 * 60 * 1000)
+                }, 30 * 1000)
             });
             lastHr = nowHr;
         }
