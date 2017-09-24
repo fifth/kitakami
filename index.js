@@ -1,18 +1,23 @@
-// const TelegramBot = require('node-telegram-bot-api');
-// const token = '323627214:AAGg7BpaiHe72FoQg1sCHXnaeGtgCdyfTew';
-// const bot = new TelegramBot(token, {
-//     polling: true
-// });
-const TEXT = require('./constants');
+const TelegramBot = require('node-telegram-bot-api');
+const config = require('./config');
+const TEXT = require('./text');
 const AUDIO = require('./audio');
 
-const doReply = (chatID, content, type) => {
+const token = config.token;
+const bot = new TelegramBot(token, {
+    polling: true
+});
+
+const sendMsg = (chatID, content, type) => {
     if (type === 'audio') {
         bot.sendAudio(chatID, content);
-    }
-    else {
+    } else {
         bot.sendMessage(chatID, content);
     }
+};
+
+const deleteMsg = (chatID, msgID) => {
+    bot.deleteMsg(chatID, msgID);
 };
 
 let lastHr;
@@ -28,10 +33,14 @@ const startTiming = chatID => {
         }
         nowHr = new Date().getHours();
         if (nowHr !== lastHr) {
-            doReply(chatID, VOICE.TIME[nowHr + '00']);
+            sendMsg(chatID, AUDIO.TIME[nowHr + '00']).then((msg) => {
+                setTimeout(() => {
+                    deleteMsg(chatID, msg.message_id)
+                }, 60 * 60 * 1000)
+            });
             lastHr = nowHr;
         }
-    }, 300 * 1000);
+    }, 60 * 1000);
 };
 const stopTiming = () => {
     isTiming = false;
@@ -40,17 +49,17 @@ bot.onText(/\/kitakami (.+)/, (msg, match) => {
     const command = match[1].split(' ');
     const key = command[0];
     let res = '';
-    let type = 'text',
+    let type = 'text';
     switch (key) {
         case 'help':
             res = 'help\ntime XXXX\ntalk home|marry|attack|hurt|powerup|shower|sink';
             break;
         case 'time':
-            res = VOICE.TIME[command[1]] || '';
+            res = AUDIO.TIME[command[1]] || '';
             type = 'audio';
             break;
         case 'talk':
-            let arr = VOICE.TALK[command[1]];
+            let arr = TEXT.TALK[command[1]];
             if (arr) {
                 let len = arr.length;
                 if (len > 0) {
@@ -65,16 +74,21 @@ bot.onText(/\/kitakami (.+)/, (msg, match) => {
             stopTiming();
             break;
         case 'ooi':
-            res = VOICE.OOI;
+            res = TEXT.OOI;
             break;
         case 'abukuma':
-            res = VOICE.ABUKUMA;
+            res = TEXT.ABUKUMA;
             break;
+        case 'delete_test':
+            res = 'delete test';
         default:
             break;
     }
     if (res) {
-        doReply(msg.chat.id, res, type);
+        sendMsg(msg.chat.id, res, type).then((msg) => {
+            setTimeout(() => {
+                deleteMsg(msg.chat.id, msg.message_id);
+            }, 60 * 1000);
+        });
     }
 });
-*/
