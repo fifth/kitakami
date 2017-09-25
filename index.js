@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const config = require('./config');
 const TEXT = require('./text');
 const AUDIO = require('./audio');
+const MEMBERS = require('./members');
 
 const timing = require('./timing');
 const gacha = require('./gacha');
@@ -27,30 +28,12 @@ const deleteMsg = (chatID, msgID) => {
     });
 };
 
-bot.onText(/\/kitakami (.+)/, (msg, match) => {
-    const command = match[1].split(' ');
-    const key = command[0];
-    const method = command[1];
+bot.onText(/[\S]+/, (msg, match) => {
+    const command = match[0];
     let res = '';
     let type = 'text';
     let time = 60 * 1000;
-    switch (key) {
-        case 'help':
-            res = 'help\ntime XXXX\ntalk home|marry|attack|hurt|powerup|shower|sink';
-            break;
-        case 'time':
-            res = AUDIO.TIME[method] || '';
-            type = 'audio';
-            break;
-        case 'talk':
-            let arr = TEXT.TALK[method];
-            if (arr) {
-                let len = arr.length;
-                if (len > 0) {
-                    res = arr[Math.floor(Math.random() * len)] || '';
-                }
-            }
-            break;
+    switch (command) {
         case 'start_alarm':
             timing.start(msg.chat.id, sendMsg, deleteMsg);
             break;
@@ -58,15 +41,12 @@ bot.onText(/\/kitakami (.+)/, (msg, match) => {
             timing.stop();
             break;
         case 'gacha':
-            gacha.run('fifth').then((url) => {
-                sendMsg(msg.chat.id, url);
-            }).catch();
-            break;
-        case 'ooi':
-            res = TEXT.OOI;
-            break;
-        case 'abukuma':
-            res = TEXT.ABUKUMA;
+            let username = MEMBERS[msg.from.id] || '';
+            if (username) {
+                gacha.run(username).then((url) => {
+                    sendMsg(msg.chat.id, url);
+                }).catch();
+            }
             break;
         default:
             break;
