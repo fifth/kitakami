@@ -28,7 +28,7 @@ const deleteMsg = (chatID, msgID) => {
     });
 };
 
-bot.onText(/[a-z_]+/, (msg, match) => {
+bot.onText(/[0-9A-Za-z_]+/, (msg, match) => {
     const command = match[0];
     let res = '';
     let type = 'text';
@@ -41,13 +41,13 @@ bot.onText(/[a-z_]+/, (msg, match) => {
             timing.stop();
             break;
         case 'gacha':
-            let username = MEMBERS[msg.from.id] || '';
+            let username = MEMBERS[msg.from.id] || command[1] || '';
             if (username) {
                 gacha.run(username).then((url) => {
                     sendMsg(msg.chat.id, url);
                 }).catch();
             } else {
-                sendMsg(msg.chat.id, 'user id not in dataset');
+                sendMsg(msg.chat.id, 'not found');
             }
             break;
         default:
