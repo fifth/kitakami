@@ -28,7 +28,7 @@ const deleteMsg = (chatID, msgID) => {
     });
 };
 
-bot.onText(/[\S]+/, (msg, match) => {
+bot.onText(/[a-z_]+/, (msg, match) => {
     const command = match[0];
     let res = '';
     let type = 'text';
