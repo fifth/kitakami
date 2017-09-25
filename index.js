@@ -46,6 +46,8 @@ bot.onText(/[a-z_]+/, (msg, match) => {
                 gacha.run(username).then((url) => {
                     sendMsg(msg.chat.id, url);
                 }).catch();
+            } else {
+                sendMsg(msg.chat.id, 'user id not in dataset');
             }
             break;
         default:
