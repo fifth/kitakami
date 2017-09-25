@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/fifth/kitakami#readme",
   "dependencies": {
-    "node-telegram-bot-api": "^0.28.0"
+    "node-telegram-bot-api": "^0.28.0",
+    "request": "^2.82.0",
+    "cheerio": "latest"
   }
 }

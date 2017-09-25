@@ -1,3 +1,5 @@
 node_modules
 .DS_Store
 config.js
+nohup.txt
+package-lock.json

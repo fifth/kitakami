@@ -3,6 +3,9 @@ const config = require('./config');
 const TEXT = require('./text');
 const AUDIO = require('./audio');
 
+const timing = require('./timing');
+const gacha = require('./gacha');
+
 const token = config.token;
 const bot = new TelegramBot(token, {
     polling: true
@@ -24,31 +27,6 @@ const deleteMsg = (chatID, msgID) => {
     });
 };
 
-let lastHr;
-let nowHr;
-let isTiming = false;
-const startTiming = chatID => {
-    isTiming = true;
-    lastHr = new Date().getHours();
-    let t = setInterval(() => {
-        if (!isTiming) {
-            clearInterval(t);
-            return;
-        }
-        nowHr = new Date().getHours();
-        if (nowHr !== lastHr) {
-            sendMsg(chatID, AUDIO.TIME[nowHr + '00']).then((msg) => {
-                setTimeout(() => {
-                    deleteMsg(chatID, msg.message_id).then().catch();
-                }, 60 * 60 * 1000);
-            }).catch();
-            lastHr = nowHr;
-        }
-    }, 60 * 1000);
-};
-const stopTiming = () => {
-    isTiming = false;
-};
 bot.onText(/\/kitakami (.+)/, (msg, match) => {
     const command = match[1].split(' ');
     const key = command[0];
@@ -74,10 +52,15 @@ bot.onText(/\/kitakami (.+)/, (msg, match) => {
             }
             break;
         case 'start_alarm':
-            startTiming(msg.chat.id);
+            timing.start(msg.chat.id, sendMsg, deleteMsg);
             break;
         case 'stop_alarm':
-            stopTiming();
+            timing.stop();
+            break;
+        case 'gacha':
+            gacha.run('fifth').then((url) => {
+                sendMsg(msg.chat.id, url);
+            }).catch();
             break;
         case 'ooi':
             res = TEXT.OOI;
