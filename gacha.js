@@ -19,6 +19,9 @@ const fetchUrl = (url) => {
 
 module.exports = {
     run: (username) => {
+        if (!username) {
+            return Promise.reject();
+        }
         return new Promise((resolve, reject) => {
             fetchUrl(`${URL_PREFIX}/anime/list/${username}/wish`)
             .then(($) => {
@@ -30,11 +33,18 @@ module.exports = {
                     index += 24;
                 }
                 if (page === 1) {
-                    resolve(URL_PREFIX + $('.mainWrapper #browserItemList').children().eq(index - 1).find('a.subjectCover').attr('href'));
+                    let suffix = $('.mainWrapper #browserItemList').children().eq(index - 1).find('a.subjectCover').attr('href');
+                    if (suffix) {
+                        resolve(URL_PREFIX + suffix);
+                    }
                 } else {
                     fetchUrl(`${URL_PREFIX}/anime/list/${username}/wish?page=${page}`)
-                    .then(($) => resolve(URL_PREFIX + $('.mainWrapper #browserItemList').children().eq(index - 1).find('a.subjectCover').attr('href')))
-                    .catch(reject);
+                    .then(($) => {
+                        let suffix = $('.mainWrapper #browserItemList').children().eq(index - 1).find('a.subjectCover').attr('href');
+                        if (suffix) {
+                            resolve(URL_PREFIX + suffix);
+                        }
+                    }).catch(reject);
                 }
             })
             .catch(reject);

@@ -2,7 +2,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const config = require('./config');
 const TEXT = require('./text');
 const AUDIO = require('./audio');
-const MEMBERS = require('./members');
 
 const timing = require('./timing');
 const gacha = require('./gacha');
@@ -12,12 +11,12 @@ const bot = new TelegramBot(token, {
     polling: true
 });
 
-const sendMsg = (chatID, content, type) => {
+const sendMsg = (chatID, content, type, replyToID) => {
     return new Promise((resolve, reject) => {
         if (type === 'audio') {
             bot.sendAudio(chatID, content).then((data) => resolve(data)).catch(reject);
         } else {
-            bot.sendMessage(chatID, content).then((data) => resolve(data)).catch(reject);
+            bot.sendMessage(chatID, content, null, null, null, replyToID).then((data) => resolve(data)).catch(reject);
         }
     });
 };
@@ -28,7 +27,7 @@ const deleteMsg = (chatID, msgID) => {
     });
 };
 
-bot.onText(/[0-9A-Za-z_]+/, (msg, match) => {
+bot.onText(/[0-9A-Za-z_@]+/, (msg, match) => {
     const command = match[0];
     let res = '';
     let type = 'text';
@@ -41,10 +40,12 @@ bot.onText(/[0-9A-Za-z_]+/, (msg, match) => {
             timing.stop();
             break;
         case 'gacha':
-            let username = MEMBERS[msg.from.id] || command[1] || '';
+            let username = msg.text.match(/[0-9A-Za-z_@]+/g)[1] || '';
             if (username) {
                 gacha.run(username).then((url) => {
-                    sendMsg(msg.chat.id, url);
+                    if (!url) {
+                        sendMsg(msg.chat.id, url, 'text', msg.from.id);
+                    }
                 }).catch();
             } else {
                 sendMsg(msg.chat.id, 'not found');
